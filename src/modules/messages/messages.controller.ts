@@ -11,16 +11,45 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
-import { SendMessageDto, GetMessagesQueryDto } from './messages.dto';
+import {
+  GetMessagesQueryDto,
+  MessageResponseDto,
+  MessagesPageResponseDto,
+  SendMessageDto,
+} from './messages.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+  ApiUnauthorizedResponse,
+  ApiUnprocessableEntityResponse,
+} from '@nestjs/swagger';
+import { ErrorResponseDto } from '../../common/swagger/api-response.dto';
 
+@ApiTags('Messages')
+@ApiBearerAuth('BearerAuth')
 @Controller('api/v1/rooms/:id/messages')
 @UseGuards(AuthGuard)
 export class MessagesController {
   constructor(private readonly messages: MessagesService) {}
 
   @Get()
+  @ApiOperation({ summary: 'Get paginated message history' })
+  @ApiParam({ name: 'id', description: 'Room identifier' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 50 })
+  @ApiQuery({ name: 'before', required: false, type: String, example: 'msg_1x2y3z' })
+  @ApiOkResponse({ type: MessagesPageResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiNotFoundResponse({ type: ErrorResponseDto })
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async getMessages(
     @Param('id') roomId: string,
@@ -47,6 +76,13 @@ export class MessagesController {
 
   @Post()
   @HttpCode(201)
+  @ApiOperation({ summary: 'Send a message to a room' })
+  @ApiParam({ name: 'id', description: 'Room identifier' })
+  @ApiCreatedResponse({ type: MessageResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiNotFoundResponse({ type: ErrorResponseDto })
+  @ApiUnprocessableEntityResponse({ type: ErrorResponseDto })
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async sendMessage(
     @Param('id') roomId: string,

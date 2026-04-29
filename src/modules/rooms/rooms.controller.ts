@@ -11,11 +11,33 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
-import { CreateRoomDto } from './rooms.dto';
+import {
+  CreateRoomDto,
+  DeleteRoomResponseDto,
+  RoomResponseDto,
+  RoomsListResponseDto,
+  RoomWithActiveUsersResponseDto,
+} from './rooms.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RedisService } from '../redis/redis.service';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { ErrorResponseDto } from '../../common/swagger/api-response.dto';
 
+@ApiTags('Rooms')
+@ApiBearerAuth('BearerAuth')
 @Controller('api/v1/rooms')
 @UseGuards(AuthGuard)
 export class RoomsController {
@@ -25,6 +47,9 @@ export class RoomsController {
   ) {}
 
   @Get()
+  @ApiOperation({ summary: 'List all rooms' })
+  @ApiOkResponse({ type: RoomsListResponseDto })
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
   async listRooms() {
     const roomList = await this.rooms.listRooms();
     return {
@@ -40,6 +65,14 @@ export class RoomsController {
 
   @Post()
   @HttpCode(201)
+  @ApiOperation({ summary: 'Create a room' })
+  @ApiCreatedResponse({ type: RoomResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiConflictResponse({
+    type: ErrorResponseDto,
+    description: 'A room with this name already exists',
+  })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async createRoom(
     @Body() dto: CreateRoomDto,
@@ -55,6 +88,11 @@ export class RoomsController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get room details' })
+  @ApiParam({ name: 'id', description: 'Room identifier' })
+  @ApiOkResponse({ type: RoomWithActiveUsersResponseDto })
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiNotFoundResponse({ type: ErrorResponseDto })
   async getRoom(@Param('id') id: string) {
     const room = await this.rooms.getRoom(id);
     return {
@@ -68,6 +106,15 @@ export class RoomsController {
 
   @Delete(':id')
   @HttpCode(200)
+  @ApiOperation({ summary: 'Delete a room' })
+  @ApiParam({ name: 'id', description: 'Room identifier' })
+  @ApiOkResponse({ type: DeleteRoomResponseDto })
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiForbiddenResponse({
+    type: ErrorResponseDto,
+    description: 'Only the room creator can delete this room',
+  })
+  @ApiNotFoundResponse({ type: ErrorResponseDto })
   async deleteRoom(
     @Param('id') id: string,
     @CurrentUser() user: { id: string; username: string },

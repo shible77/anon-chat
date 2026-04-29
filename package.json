@@ -17,6 +17,7 @@
     "@nestjs/core": "^10.3.0",
     "@nestjs/platform-express": "^10.3.0",
     "@nestjs/platform-socket.io": "^10.3.0",
+    "@nestjs/swagger": "^7.4.2",
     "@nestjs/websockets": "^10.3.0",
     "@socket.io/redis-adapter": "^8.3.0",
     "class-transformer": "^0.5.1",
@@ -29,6 +30,7 @@
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
     "socket.io": "^4.7.4",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
