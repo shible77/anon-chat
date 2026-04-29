@@ -46,7 +46,7 @@ cp .env.example .env
 Open `.env` and fill in your credentials:
 
 ```env
-PORT=3000
+PORT=5000
 NODE_ENV=development
 
 # Supabase — Settings → Database → Connection string → Session pooler
@@ -69,7 +69,7 @@ SESSION_TTL_SECONDS=86400
    postgresql://postgres.xxxxxxxxxxxx:YOUR-PASSWORD@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres
    ```
 
-> ⚠️ Use the **Session pooler** URL, not the Direct connection URL.
+> ⚠️ Use the **Transaction pooler** URL, not the Direct connection URL.
 > The Direct connection URL (`db.xxxx.supabase.co`) may not be reachable from all networks.
 
 ### 4. Getting your Upstash Redis URL
@@ -109,7 +109,7 @@ You should see:
 [Redis] Connected
 [Redis] Connected
 [ChatGateway] Subscribed to Redis channel: chat:events
-[App] Listening on http://0.0.0.0:3000
+[App] Listening on http://0.0.0.0:5000
 ```
 
 ---
@@ -133,7 +133,7 @@ Make sure your `.env` file is filled in, then:
 docker-compose up --build
 ```
 
-The app will be available at `http://localhost:3000`.
+The app will be available at `http://localhost:5000`.
 
 To stop:
 ```bash
@@ -159,7 +159,7 @@ docker-compose down
 | GET | `/api/v1/rooms/:id/messages` | ✅ | Paginated message history |
 | POST | `/api/v1/rooms/:id/messages` | ✅ | Send a message |
 
-**WebSocket:** `ws://localhost:3000/chat?token=<sessionToken>&roomId=<roomId>`
+**WebSocket:** `ws://localhost:5000/chat?token=<sessionToken>&roomId=<roomId>`
 
 ---
 
@@ -167,14 +167,14 @@ docker-compose down
 
 ### Login
 ```bash
-curl -X POST http://localhost:3000/api/v1/login \
+curl -X POST http://localhost:5000/api/v1/login \
   -H "Content-Type: application/json" \
   -d '{"username": "ali_123"}'
 ```
 
 ### Create a room
 ```bash
-curl -X POST http://localhost:3000/api/v1/rooms \
+curl -X POST http://localhost:5000/api/v1/rooms \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
   -d '{"name": "general"}'
@@ -182,7 +182,7 @@ curl -X POST http://localhost:3000/api/v1/rooms \
 
 ### Send a message
 ```bash
-curl -X POST http://localhost:3000/api/v1/rooms/YOUR_ROOM_ID/messages \
+curl -X POST http://localhost:5000/api/v1/rooms/YOUR_ROOM_ID/messages \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
   -d '{"content": "hello everyone"}'
@@ -190,7 +190,7 @@ curl -X POST http://localhost:3000/api/v1/rooms/YOUR_ROOM_ID/messages \
 
 ### Get message history
 ```bash
-curl http://localhost:3000/api/v1/rooms/YOUR_ROOM_ID/messages \
+curl http://localhost:5000/api/v1/rooms/YOUR_ROOM_ID/messages \
   -H "Authorization: Bearer YOUR_SESSION_TOKEN"
 ```
 
