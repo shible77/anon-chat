@@ -12,9 +12,9 @@ import {
 } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto } from './rooms.dto';
-import { AuthGuard } from '@common/guards/auth.guard';
-import { CurrentUser } from '@common/decorators/current-user.decorator';
-import { RedisService } from '@modules/redis/redis.service';
+import { AuthGuard } from '../../common/guards/auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { RedisService } from '../redis/redis.service';
 
 @Controller('api/v1/rooms')
 @UseGuards(AuthGuard)
@@ -72,9 +72,8 @@ export class RoomsController {
     @Param('id') id: string,
     @CurrentUser() user: { id: string; username: string },
   ) {
-    // Publish room:deleted event BEFORE deleting so subscribers can act
-    await this.redis.publish({ type: 'room:deleted', roomId: id });
     await this.rooms.deleteRoom(id, user.username);
+    await this.redis.publish({ type: 'room:deleted', roomId: id });
     return { deleted: true };
   }
 }

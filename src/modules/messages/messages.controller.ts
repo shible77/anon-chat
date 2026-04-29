@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { SendMessageDto, GetMessagesQueryDto } from './messages.dto';
-import { AuthGuard } from '@common/guards/auth.guard';
-import { CurrentUser } from '@common/decorators/current-user.decorator';
+import { AuthGuard } from '../../common/guards/auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('api/v1/rooms/:id/messages')
 @UseGuards(AuthGuard)

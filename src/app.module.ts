@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { DatabaseModule } from '@modules/database/database.module';
-import { RedisModule } from '@modules/redis/index';
-import { AuthModule } from '@modules/auth/auth.module';
-import { RoomsModule } from '@modules/rooms/rooms.module';
-import { MessagesModule } from '@modules/messages/messages.module';
-import { ChatModule } from '@modules/chat/chat.module';
+import { DatabaseModule } from './modules/database/database.module';
+import { RedisModule } from './modules/redis';
+import { AuthModule } from './modules/auth/auth.module';
+import { RoomsModule } from './modules/rooms/rooms.module';
+import { MessagesModule } from './modules/messages/messages.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
   imports: [

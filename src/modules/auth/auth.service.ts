@@ -1,9 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { DrizzleDB, DRIZZLE } from '@modules/database/database.module';
-import { users, User } from '@modules/database/schema';
-import { RedisService } from '@modules/redis/redis.service';
-import { generateId } from '@common/utils/id.util';
+import { DrizzleDB, DRIZZLE } from '../database/database.module';
+import { users, User } from '../database/schema';
+import { RedisService } from '../redis/redis.service';
+import { generateId } from '../../common/utils/id.util';
 
 @Injectable()
 export class AuthService {
@@ -24,12 +24,18 @@ export class AuthService {
       const [created] = await this.db
         .insert(users)
         .values({ id: generateId.user(), username })
+        .onConflictDoNothing()
         .returning();
-      user = created;
+
+      user = created ?? (await this.findUserByUsername(username));
     }
 
     // Always issue a fresh session token (invalidates nothing — multiple
     // sessions per user are allowed; they expire independently via Redis TTL)
+    if (!user) {
+      throw new Error(`Failed to resolve user record for username ${username}`);
+    }
+
     const sessionToken = generateId.session();
     await this.redis.setSession(sessionToken, user.id);
 

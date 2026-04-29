@@ -6,10 +6,10 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { DrizzleDB, DRIZZLE } from '@modules/database/database.module';
-import { rooms, Room } from '@modules/database/schema';
-import { RedisService } from '@modules/redis/redis.service';
-import { generateId } from '@common/utils/id.util';
+import { DrizzleDB, DRIZZLE } from '../database/database.module';
+import { rooms, Room } from '../database/schema';
+import { RedisService } from '../redis/redis.service';
+import { generateId } from '../../common/utils/id.util';
 
 export interface RoomWithActiveUsers extends Room {
   activeUsers: number;

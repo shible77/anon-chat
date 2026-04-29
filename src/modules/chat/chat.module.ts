@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ChatGateway } from './chat.gateway';
-import { AuthModule } from '@modules/auth/auth.module';
-import { RoomsModule } from '@modules/rooms/rooms.module';
+import { AuthModule } from '../auth/auth.module';
+import { RoomsModule } from '../rooms/rooms.module';
 
 @Module({
   imports: [AuthModule, RoomsModule],

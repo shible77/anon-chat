@@ -5,8 +5,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { RedisService } from '@modules/redis/redis.service';
-import { AuthService } from '@modules/auth/auth.service';
+import { RedisService } from '../../modules/redis/redis.service';
+import { AuthService } from '../../modules/auth/auth.service';
 
 // Attach the resolved user to the request for downstream use
 export interface AuthenticatedRequest extends Request {

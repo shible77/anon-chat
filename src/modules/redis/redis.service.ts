@@ -7,6 +7,8 @@ import { REDIS_CLIENT } from './redis.module';
 const Keys = {
   session: (token: string) => `session:${token}`,
   roomUsers: (roomId: string) => `room:${roomId}:users`,
+  roomUserSockets: (roomId: string, username: string) =>
+    `room:${roomId}:user:${username}:sockets`,
   socketUser: (socketId: string) => `socket:${socketId}:user`,
   socketRoom: (socketId: string) => `socket:${socketId}:room`,
 };
@@ -40,12 +42,58 @@ export class RedisService {
 
   // ─── Active users per room ─────────────────────────────────────────────────
 
-  async addUserToRoom(roomId: string, username: string): Promise<void> {
-    await this.redis.sadd(Keys.roomUsers(roomId), username);
+  async addUserToRoom(
+    roomId: string,
+    username: string,
+    socketId: string,
+  ): Promise<boolean> {
+    const socketKey = Keys.roomUserSockets(roomId, username);
+    const results = await this.redis
+      .multi()
+      .sadd(socketKey, socketId)
+      .expire(socketKey, this.sessionTtl)
+      .scard(socketKey)
+      .exec();
+
+    const addedSocket = Number(results?.[0]?.[1] ?? 0);
+    const socketCount = Number(results?.[2]?.[1] ?? 0);
+
+    const isFirstSocketForUser =
+      addedSocket === 1 && socketCount === 1;
+
+    if (isFirstSocketForUser) {
+      await this.redis.sadd(Keys.roomUsers(roomId), username);
+    }
+
+    return isFirstSocketForUser;
   }
 
-  async removeUserFromRoom(roomId: string, username: string): Promise<void> {
-    await this.redis.srem(Keys.roomUsers(roomId), username);
+  async removeUserFromRoom(
+    roomId: string,
+    username: string,
+    socketId: string,
+  ): Promise<boolean> {
+    const socketKey = Keys.roomUserSockets(roomId, username);
+    const results = await this.redis
+      .multi()
+      .srem(socketKey, socketId)
+      .scard(socketKey)
+      .exec();
+
+    const socketCount = Number(results?.[1]?.[1] ?? 0);
+
+    if (socketCount > 0) {
+      await this.redis.expire(socketKey, this.sessionTtl);
+      return false;
+    }
+
+    await this.redis
+      .multi()
+      .del(socketKey)
+      .srem(Keys.roomUsers(roomId), username)
+      .exec();
+
+    return true;
   }
 
   async getRoomUsers(roomId: string): Promise<string[]> {

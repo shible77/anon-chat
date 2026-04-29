@@ -1,9 +1,9 @@
 import { Injectable, Inject, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { and, eq, lt, desc } from 'drizzle-orm';
-import { DrizzleDB, DRIZZLE } from '@modules/database/database.module';
-import { messages, rooms, Message } from '@modules/database/schema';
-import { RedisService } from '@modules/redis/redis.service';
-import { generateId } from '@common/utils/id.util';
+import { DrizzleDB, DRIZZLE } from '../database/database.module';
+import { messages, rooms, Message } from '../database/schema';
+import { RedisService } from '../redis/redis.service';
+import { generateId } from '../../common/utils/id.util';
 
 export interface PaginatedMessages {
   messages: Message[];

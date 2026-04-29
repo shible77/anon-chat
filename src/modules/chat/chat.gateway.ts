@@ -8,12 +8,11 @@ import {
 } from '@nestjs/websockets';
 import { Logger, Inject } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { createAdapter } from '@socket.io/redis-adapter';
 import Redis from 'ioredis';
-import { RedisService } from '@modules/redis/redis.service';
-import { AuthService } from '@modules/auth/auth.service';
-import { RoomsService } from '@modules/rooms/rooms.service';
-import { REDIS_CLIENT, REDIS_SUB_CLIENT } from '@modules/redis/redis.module';
+import { RedisService } from '../redis/redis.service';
+import { AuthService } from '../auth/auth.service';
+import { RoomsService } from '../rooms/rooms.service';
+import { REDIS_SUB_CLIENT } from '../redis/redis.module';
 
 // Shape of events published over Redis pub/sub
 interface PubSubEvent {
@@ -44,7 +43,6 @@ export class ChatGateway
     private readonly redis: RedisService,
     private readonly auth: AuthService,
     private readonly rooms: RoomsService,
-    @Inject(REDIS_CLIENT) private readonly pubClient: Redis,
     @Inject(REDIS_SUB_CLIENT) private readonly subClient: Redis,
   ) {}
 
@@ -118,7 +116,11 @@ private subscribeToChannel(): void {
       await this.redis.bindSocket(socket.id, user.username, room.id);
 
       // Add user to room's active-user set
-      await this.redis.addUserToRoom(room.id, user.username);
+      const isFirstSocketForUser = await this.redis.addUserToRoom(
+        room.id,
+        user.username,
+        socket.id,
+      );
 
       // Join the Socket.io room for targeted broadcasts
       socket.join(room.id);
@@ -128,11 +130,12 @@ private subscribeToChannel(): void {
       socket.emit('room:joined', { activeUsers });
 
       // Notify everyone else in the room
-      const others = activeUsers.filter((u) => u !== user.username);
-      socket.to(room.id).emit('room:user_joined', {
-        username: user.username,
-        activeUsers,
-      });
+      if (isFirstSocketForUser) {
+        socket.to(room.id).emit('room:user_joined', {
+          username: user.username,
+          activeUsers,
+        });
+      }
 
       this.logger.log(`[connect] ${user.username} → room ${room.id} (socket ${socket.id})`);
     } catch (err) {
@@ -148,11 +151,17 @@ private subscribeToChannel(): void {
 
       if (!username || !roomId) return; // Already cleaned up
 
-      await this.redis.removeUserFromRoom(roomId, username);
+      const wasLastSocketForUser = await this.redis.removeUserFromRoom(
+        roomId,
+        username,
+        socket.id,
+      );
       await this.redis.unbindSocket(socket.id);
 
-      const activeUsers = await this.redis.getRoomUsers(roomId);
-      this.server.to(roomId).emit('room:user_left', { username, activeUsers });
+      if (wasLastSocketForUser) {
+        const activeUsers = await this.redis.getRoomUsers(roomId);
+        this.server.to(roomId).emit('room:user_left', { username, activeUsers });
+      }
 
       this.logger.log(`[disconnect] ${username} ← room ${roomId}`);
     } catch (err) {
