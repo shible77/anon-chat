@@ -64,7 +64,7 @@ async function bootstrap() {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Anonymous Chat API')
     .setDescription(
-      'REST API for anonymous chat. Successful responses are wrapped as `{ success: true, data }` and failures as `{ success: false, error }`.',
+      'REST API for anonymous group chatting application. Feel free to explore the endpoints and If found any issue, you can reach me out through the following email `shible0805@gmail.com`.',
     )
     .setVersion('1.0.0')
     .addBearerAuth(
