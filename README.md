@@ -81,9 +81,10 @@ SESSION_TTL_SECONDS=86400
 
 > ⚠️ The URL starts with `rediss://` (double `s`) — this means TLS is enabled, which is required by Upstash. The app handles this automatically.
 
-### 5. Run the database migration
+### 5. Create the tables and run the database migration
 
 ```bash
+npm run db:generate
 npm run db:migrate
 ```
 
