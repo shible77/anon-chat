@@ -39,9 +39,7 @@ npm install
 
 ### 2. Configure environment
 
-```bash
-cp .env.example .env
-```
+Create an .env file in the root of the project.
 
 Open `.env` and fill in your credentials:
 
